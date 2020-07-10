@@ -19,33 +19,42 @@ import core.plugin.InitializablePlugin;
 public class WitchsExperimentNPC extends AbstractNPC {
 
     private ExperimentType type;
+    private ExperimentSession session;
     private boolean commenced;
-    Player p;
 
     public WitchsExperimentNPC() {
         super(0, null);
     }
 
-    WitchsExperimentNPC(int id, Location location, Player player) {
+    WitchsExperimentNPC(int id, Location location, ExperimentSession session) {
         super(id, location);
         this.setWalks(true);
+        this.session = session;
         this.setRespawn(false);
         this.type = WitchsExperimentNPC.ExperimentType.forId(id);
-        p = player;
     }
 
     @Override
     public void handleTickActions() {
         super.handleTickActions();
-        if (!getProperties().getCombatPulse().isAttacking()) {
-            getProperties().getCombatPulse().attack(p);
+        if (session == null) {
+            return;
+        }
+        if (!session.getPlayer().isActive() || session.getPlayer().getLocation().getDistance(getLocation()) > 15 || session.getPlayer().getSavedData().getQuestData().isWitchsExerimentKilled()) {
+            session.getPlayer().removeAttribute("exerimentAlive");
+            clear();
+            session.close();
+            return;
+        }
+        if (commenced && !getProperties().getCombatPulse().isAttacking()) {
+            getProperties().getCombatPulse().attack(session.getPlayer());
         }
     }
 
     @Override
     public void startDeath(Entity killer) {
-        if (killer == p) {
-            type.transform(this, p);
+        if (killer == session.getPlayer()) {
+            type.transform(this, session.getPlayer());
             return;
         }
         super.startDeath(killer);
@@ -53,14 +62,17 @@ public class WitchsExperimentNPC extends AbstractNPC {
 
     @Override
     public boolean isAttackable(Entity entity, CombatStyle style) {
-        return p == entity;
+        if (session == null) {
+            return false;
+        }
+        return session.getPlayer() == entity;
     }
 
     @Override
     public boolean canSelectTarget(Entity target) {
         if (target instanceof Player) {
             Player p = (Player) target;
-            return p == this.p;
+            return p == session.getPlayer();
         }
         return true;
     }
@@ -113,7 +125,7 @@ public class WitchsExperimentNPC extends AbstractNPC {
             npc.lock();
             npc.getPulseManager().clear();
             npc.getWalkingQueue().reset();
-            player.setAttribute("/save:witchs_house:experiment_id",this.id);
+            player.getSavedData().getQuestData().setWitchsExerimentStage(newType.ordinal());
             GameWorld.Pulser.submit(new Pulse(1, npc, player) {
                 int counter;
 
@@ -131,13 +143,13 @@ public class WitchsExperimentNPC extends AbstractNPC {
                             if (newType != END) {
                                 npc.getProperties().getCombatPulse().attack(player);
                             }
-                            if (newType.getMessage() != null && newType != END) {
+                            if (newType.getMessage() != null) {
                                 player.sendMessage(newType.getMessage()[0]);
                                 player.sendMessage(newType.getMessage()[1]);
                             }
                             if (newType == END) {
-                                player.setAttribute("witchs_house:experiment_killed",true);
-                                npc.clear();
+                                player.getSavedData().getQuestData().setWitchsExerimentKilled(true);
+                                player.removeAttribute("exerimentAlive");
                                 return false;
                             }
                             player.unlock();
@@ -162,7 +174,7 @@ public class WitchsExperimentNPC extends AbstractNPC {
 
         public ExperimentType next()
         {
-            return experimentTypes[this.ordinal() + 1];
+            return experimentTypes[(this.ordinal()+1) % experimentTypes.length];
         }
 
         public int getId() {
