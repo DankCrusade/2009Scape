@@ -14,7 +14,6 @@ import core.net.packet.IoBuffer;
 import core.net.packet.PacketRepository;
 import core.net.packet.context.PlayerContext;
 import core.net.packet.out.ClearMinimapFlag;
-import plugin.quest.QuestInteractionManager;
 
 /**
  * The incoming item reward packet.
@@ -115,9 +114,6 @@ public class ItemActionPacket implements IncomingPacket {
 				return;
 			}
 			event = new NodeUsageEvent(player, 0, used, object);
-			if(QuestInteractionManager.handle(player,event)){
-				return;
-			}
 			UseWithHandler.run(event);
 			return;
 		default:

@@ -18,10 +18,6 @@ import core.game.world.update.flag.context.Animation;
 import core.game.world.update.flag.context.Graphics;
 
 /**
- * Debug NPC Opcodes Line 483, Uncomment
- */
-
-/**
  * Represents an NPC's definitions.
  * @author Emperor
  */
@@ -485,7 +481,7 @@ public final class NPCDefinition extends Definition<NPC> {
 			}
 			break;
 		default:
-			//System.err.println("Unhandled NPC definition opcode: " + opcode);
+			System.err.println("Unhandled NPC definition opcode: " + opcode);
 		}
 		if (id == 3074) {
 			setName("Monk");

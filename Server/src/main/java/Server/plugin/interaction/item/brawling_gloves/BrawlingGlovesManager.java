@@ -69,12 +69,15 @@ public class BrawlingGlovesManager implements SavingModule {
 
     public double getExperienceBonus(){
         double bonus;
+        final double BONUS_PER_DEPTH = 5.3191489362;
         int level = player.getSkullManager().getLevel();
-        if(level > 0){
-            bonus = 3.0;
+        if(level >= 47){
+            bonus = 250.0;
+        }else if(level == 0){
+            bonus = 50.0;
         }else{
-            bonus = 0.5;
+            bonus = 50.0 + level * BONUS_PER_DEPTH;
         }
-        return bonus;
+        return bonus / 100;
     }
 }

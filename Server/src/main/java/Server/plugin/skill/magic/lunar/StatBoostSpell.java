@@ -1,5 +1,8 @@
 package plugin.skill.magic.lunar;
 
+import plugin.consumable.Consumables;
+import plugin.consumable.Drink;
+
 import plugin.consumable.potion.Potions;
 import plugin.skill.magic.MagicSpell;
 import plugin.skill.magic.Runes;
